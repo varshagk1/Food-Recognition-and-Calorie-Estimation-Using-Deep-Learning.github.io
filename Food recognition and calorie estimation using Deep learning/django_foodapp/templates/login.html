@@ -1,0 +1,128 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+
+            /* Bread pudding background */
+            background: linear-gradient(rgba(90, 50, 120, 0.6), rgba(90, 50, 120, 0.6)),
+            url("https://media.istockphoto.com/id/530200167/photo/sweet-homemade-bread-pudding.webp?a=1&b=1&s=612x612&w=0&k=20&c=qO4f1YHVgbfjAEx-_E4dQBChekkjkcbbEiR5evqLM_s=");
+
+            background-size: cover;
+            background-position: center;
+            height: 100vh;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login-box {
+            width: 350px;
+            padding: 40px;
+
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+
+            color: white;
+            text-align: center;
+        }
+
+        .login-box h2 {
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .input-box {
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .input-box input {
+         width: 100%;
+         padding: 10px;
+         background: rgba(255,255,255,0.8);
+         border: none;
+         border-radius: 8px;
+         outline: none;
+         color: black;   /* ✅ text color black */
+}
+
+        .options {
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .btn {
+            margin-top: 25px;
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 25px;
+            background: white;
+            color: #6a11cb;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background: #ddd;
+        }
+
+        .bottom {
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .bottom a {
+            color: #fff;
+            font-weight: bold;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="login-box">
+
+    <h2>Login</h2>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <div class="input-box">
+            <input type="username" name="username" placeholder="username" required>
+        </div>
+
+        <div class="input-box">
+            <input type="password" name="password" placeholder="Password" required>
+        </div>
+
+        <div class="options">
+            <label><input type="checkbox"> Remember Me</label>
+            <span>Forgot Password?</span>
+        </div>
+
+        <button class="btn">Log in</button>
+
+        <div class="bottom">
+            Don't have an account? <a href="/signup/">Register</a>
+        </div>
+
+    </form>
+
+</div>
+
+</body>
+</html>

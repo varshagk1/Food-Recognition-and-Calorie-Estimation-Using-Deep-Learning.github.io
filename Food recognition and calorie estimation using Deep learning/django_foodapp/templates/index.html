@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Food Calorie Estimator</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: linear-gradient(to right, #ff7e5f, #feb47b);
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            background: white;
+            width: 400px;
+            margin: 80px auto;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0px 0px 20px rgba(0,0,0,0.2);
+        }
+
+        h2 {
+            color: #ff5e62;
+        }
+
+        input[type="file"] {
+            margin: 15px 0;
+        }
+
+        button {
+            background: #ff5e62;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #ff9966;
+        }
+
+        .result {
+            margin-top: 20px;
+            background: #f3f3f3;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        img {
+            margin-top: 10px;
+            border-radius: 10px;
+        }
+
+        a {
+            display: block;
+            margin-top: 10px;
+            color: #ff5e62;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h2>🍔 Food Recognition and calorie estimation</h2>
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="file" name="image">
+        <br>
+        <button type="submit">Predict</button>
+    </form>
+
+    {% if food %}
+    <div class="result">
+        <h3>Result</h3>
+        <p><b>Food:</b> {{ food }}</p>
+        <p><b>Confidence:</b> {{ prob }}</p>
+        <p><b>Calories:</b> {{ calories }} kcal</p>
+
+         {% if image_url %}
+        <img src="{{ image_url }}" 
+        style="width:200px; border-radius: 10px;">
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <a href="/logout/">Logout</a>
+
+</div>
+
+</body>
+</html>
