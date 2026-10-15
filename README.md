@@ -1,5 +1,5 @@
 # Food-Recognition-and-Calorie-Estimation-Using-Deep-Learning
-# Food Recognition and Calorie Estimation
+
 
 A browser-based food recognition demo. Upload an image to classify it into one of 11 food categories and see an approximate calorie estimate.
 
