@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Recognize food photos and estimate calories in your browser.">
+  <title>FoodLens — Food Calorie Estimator</title>
+  <style>
+    :root { color-scheme: light; --ink:#17251f; --muted:#617168; --green:#26714d; --green-dark:#19573a; --paper:#f6f6f0; --line:#e2e7df; --white:#fff; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--paper); color:var(--ink); font-family:Inter,"Segoe UI",Arial,sans-serif; }
+    header { height:76px; display:flex; align-items:center; justify-content:space-between; padding:0 max(24px,calc((100vw - 1120px)/2)); background:rgba(255,255,255,.92); border-bottom:1px solid var(--line); }
+    .brand { display:flex; align-items:center; gap:11px; color:var(--ink); font-weight:800; letter-spacing:.025em; text-decoration:none; }
+    .brand-mark { display:grid; place-items:center; width:37px; height:37px; border-radius:13px; color:white; background:var(--green); font-size:20px; }
+    nav { display:flex; gap:27px; } nav a { color:var(--muted); font-size:14px; font-weight:650; text-decoration:none; } nav a:hover { color:var(--green); }
+    main { max-width:1120px; margin:0 auto; padding:62px 24px 80px; }
+    .intro { text-align:center; margin-bottom:35px; }
+    .eyebrow { color:var(--green); font-size:12px; font-weight:800; letter-spacing:.16em; text-transform:uppercase; }
+    h1 { margin:12px 0 12px; font-size:clamp(36px,5vw,56px); line-height:1.04; letter-spacing:-.055em; }
+    .intro p { max-width:650px; margin:0 auto; color:var(--muted); font-size:17px; line-height:1.65; }
+    .workspace { display:grid; grid-template-columns:1.1fr .9fr; gap:22px; align-items:stretch; }
+    .card { background:var(--white); border:1px solid var(--line); border-radius:22px; box-shadow:0 14px 45px rgba(30,50,37,.055); }
+    .upload-card { padding:25px; }
+    .card-title { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:17px; }
+    h2 { margin:0; font-size:18px; letter-spacing:-.02em; }
+    .step { color:#829087; font-size:12px; font-weight:700; }
+    .dropzone { min-height:324px; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; border:1.5px dashed #bdcbc0; border-radius:17px; background:#fbfcf9; text-align:center; cursor:pointer; transition:.18s ease; }
+    .dropzone:hover,.dropzone.dragover { border-color:var(--green); background:#f1f7f1; }
+    .dropzone.has-image { padding:12px; }
+    .upload-icon { width:54px; height:54px; display:grid; place-items:center; border-radius:18px; background:#e9f2e9; color:var(--green); font-size:25px; margin-bottom:15px; }
+    .dropzone strong { font-size:16px; }
+    .dropzone small { margin-top:8px; color:var(--muted); line-height:1.5; }
+    #preview { display:none; width:100%; max-height:340px; object-fit:contain; border-radius:12px; }
+    #fileInput { display:none; }
+    .upload-actions { display:flex; align-items:center; gap:12px; margin-top:17px; }
+    button { min-height:48px; border:0; border-radius:13px; font:inherit; font-weight:750; cursor:pointer; }
+    #analyzeButton { flex:1; color:white; background:var(--green); box-shadow:0 7px 16px rgba(38,113,77,.18); }
+    #analyzeButton:hover:not(:disabled) { background:var(--green-dark); }
+    #analyzeButton:disabled { opacity:.45; cursor:not-allowed; box-shadow:none; }
+    #clearButton { padding:0 17px; color:var(--muted); background:#eff2ed; }
+    .small-note { margin:13px 2px 0; color:#77837b; font-size:12px; line-height:1.55; }
+    .result-card { min-height:435px; padding:25px; display:flex; flex-direction:column; }
+    .result-body { flex:1; display:grid; place-items:center; text-align:center; }
+    .empty-result { max-width:310px; color:var(--muted); line-height:1.65; }
+    .result-icon { width:64px; height:64px; display:grid; place-items:center; margin:0 auto 17px; border-radius:21px; background:#f0f3ee; color:#8a988e; font-size:28px; }
+    #result { display:none; width:100%; text-align:left; }
+    .result-label { color:var(--muted); font-size:12px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; }
+    #foodName { margin:7px 0 18px; font-size:31px; letter-spacing:-.04em; }
+    .stats { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .stat { padding:16px; border-radius:15px; background:#f5f7f3; }
+    .stat strong { display:block; color:var(--green); font-size:26px; letter-spacing:-.04em; }
+    .stat span { display:block; margin-top:4px; color:var(--muted); font-size:12px; }
+    .confidence { margin:19px 0 8px; display:flex; justify-content:space-between; color:var(--muted); font-size:13px; }
+    .track { height:8px; overflow:hidden; border-radius:9px; background:#e9ede8; }
+    #confidenceBar { width:0; height:100%; border-radius:inherit; background:var(--green); transition:width .3s ease; }
+    #status { min-height:22px; margin-top:16px; color:var(--muted); font-size:13px; line-height:1.55; }
+    #status.error { color:#aa3d32; }
+    .about { max-width:780px; margin:52px auto 0; padding:24px 27px; border:1px solid var(--line); border-radius:18px; background:rgba(255,255,255,.58); color:var(--muted); line-height:1.7; }
+    .about h2 { margin-bottom:8px; color:var(--ink); }
+    footer { padding:0 24px 28px; color:#879189; text-align:center; font-size:12px; }
+    @media(max-width:760px) { header { height:auto; min-height:68px; padding:14px 18px; } nav { gap:15px; } nav a { font-size:13px; } main { padding:40px 16px 60px; } .workspace { grid-template-columns:1fr; } .dropzone { min-height:260px; } .result-card { min-height:350px; } }
+    @media(max-width:430px) { nav { gap:10px; } nav a { font-size:12px; } .brand { font-size:14px; } .upload-card,.result-card { padding:18px; } }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.23.2/dist/ort.min.js"></script>
+</head>
+<body>
+  <header>
+    <a class="brand" href="#top"><span class="brand-mark" aria-hidden="true">✳</span> FOODLENS</a>
+    <nav aria-label="Main navigation"><a href="#top">Home</a><a href="#about">About</a></nav>
+  </header>
+  <main id="top">
+    <section class="intro">
+      <div class="eyebrow">Food image recognition</div>
+      <h1>Discover what’s on your plate.</h1>
+      <p>Choose a food photo to classify it and see a calorie reference estimate. The model runs in your browser; your image stays on your device.</p>
+    </section>
+    <section class="workspace" aria-label="Food image classifier">
+      <div class="card upload-card">
+        <div class="card-title"><h2>Upload a food photo</h2><span class="step">STEP 1</span></div>
+        <input id="fileInput" type="file" accept="image/jpeg,image/png,image/webp">
+        <div id="dropzone" class="dropzone" role="button" tabindex="0" aria-label="Choose or drop an image">
+          <div id="emptyUpload"><div class="upload-icon" aria-hidden="true">↑</div><strong>Drop your image here</strong><small>or click to browse · JPG, PNG, WEBP · up to 15 MB</small></div>
+          <img id="preview" alt="Selected food preview">
+        </div>
+        <div class="upload-actions"><button id="analyzeButton" type="button" disabled>Analyze food</button><button id="clearButton" type="button">Clear</button></div>
+        <p class="small-note">The first analysis downloads the 44.7 MB model. Later predictions reuse it while this page stays open.</p>
+      </div>
+      <div class="card result-card" aria-live="polite">
+        <div class="card-title"><h2>Prediction</h2><span class="step">STEP 2</span></div>
+        <div class="result-body">
+          <div id="emptyResult" class="empty-result"><div class="result-icon" aria-hidden="true">⌕</div><strong>Your result will appear here</strong><br>Upload a clear photo of one food item to get started.</div>
+          <div id="result">
+            <div class="result-label">Food detected</div><h3 id="foodName">—</h3>
+            <div class="stats"><div class="stat"><strong id="calories">—</strong><span>approx. kcal per serving*</span></div><div class="stat"><strong id="topLabel">—</strong><span>model confidence</span></div></div>
+            <div class="confidence"><span>Confidence</span><strong id="confidenceText">—</strong></div><div class="track"><div id="confidenceBar"></div></div>
+          </div>
+        </div>
+        <div id="status" role="status">Ready. Select an image to begin.</div>
+      </div>
+    </section>
+    <section id="about" class="about"><h2>About this estimate</h2><p>This browser-only page uses the project’s ResNet-18 food classifier, converted from the provided PyTorch weights to ONNX. It recognizes 11 food categories. The calorie number is a fixed category reference from the project, not a measurement of the portion size; treat it as a rough estimate.</p><p>*The image is processed locally in your browser. The page downloads the model file from this GitHub Pages site and does not upload your photo.</p></section>
+  </main>
+  <footer>FoodLens · Browser inference with ONNX Runtime Web</footer>
+  <script>
+    (() => {
+      const classes = ["apple_pie", "baklava", "beef_carpaccio", "beef_tartae", "beet_salad", "beignets", "bibimbap", "bread_pudding", "breakfast_burrito", "bruschetta", "dimsum"];
+      const caloriesByClass = { apple_pie:296, baklava:334, beef_carpaccio:230, beef_tartae:250, beet_salad:120, beignets:250, bibimbap:560, bread_pudding:320, breakfast_burrito:295, bruschetta:180, dimsum:696 };
+      const modelUrl = new URL("./food-model.onnx", window.location.href).toString();
+      const input = document.getElementById("fileInput");
+      const dropzone = document.getElementById("dropzone");
+      const preview = document.getElementById("preview");
+      const emptyUpload = document.getElementById("emptyUpload");
+      const analyzeButton = document.getElementById("analyzeButton");
+      const status = document.getElementById("status");
+      let selectedFile = null;
+      let objectUrl = null;
+      let sessionPromise = null;
+
+      function setStatus(message, isError = false) {
+        status.textContent = message;
+        status.classList.toggle("error", isError);
+      }
+
+      function titleFor(name) {
+        return name === "beef_tartae" ? "Beef Tartare" : name.split("_").map(part => part[0].toUpperCase() + part.slice(1)).join(" ");
+      }
+
+      function chooseFile(file) {
+        if (!file) return;
+        if (!/^image\/(jpeg|png|webp)$/.test(file.type)) {
+          setStatus("Choose a JPG, PNG, or WEBP image.", true);
+          return;
+        }
+        if (file.size > 15 * 1024 * 1024) {
+          setStatus("That image is larger than 15 MB. Choose a smaller image.", true);
+          return;
+        }
+        selectedFile = file;
+        if (objectUrl) URL.revokeObjectURL(objectUrl);
+        objectUrl = URL.createObjectURL(file);
+        preview.src = objectUrl;
+        preview.style.display = "block";
+        emptyUpload.style.display = "none";
+        dropzone.classList.add("has-image");
+        analyzeButton.disabled = false;
+        document.getElementById("result").style.display = "none";
+        document.getElementById("emptyResult").style.display = "block";
+        setStatus(`Selected ${file.name}. Ready to analyze.`);
+      }
+
+      function getSession() {
+        if (!sessionPromise) {
+          if (!window.ort) throw new Error("ONNX Runtime did not load. Check your internet connection and refresh.");
+          ort.env.wasm.wasmPaths = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.23.2/dist/";
+          sessionPromise = ort.InferenceSession.create(modelUrl, { executionProviders: ["wasm"], graphOptimizationLevel: "all" });
+        }
+        return sessionPromise;
+      }
+
+      async function makeTensor(file) {
+        const bitmap = await createImageBitmap(file);
+        const canvas = document.createElement("canvas");
+        canvas.width = 224; canvas.height = 224;
+        const ctx = canvas.getContext("2d", { willReadFrequently: true });
+        ctx.drawImage(bitmap, 0, 0, 224, 224);
+        bitmap.close();
+        const pixels = ctx.getImageData(0, 0, 224, 224).data;
+        const values = new Float32Array(3 * 224 * 224);
+        const mean = [0.485, 0.456, 0.406];
+        const std = [0.229, 0.224, 0.225];
+        for (let i = 0; i < 224 * 224; i++) {
+          values[i] = (pixels[i * 4] / 255 - mean[0]) / std[0];
+          values[224 * 224 + i] = (pixels[i * 4 + 1] / 255 - mean[1]) / std[1];
+          values[2 * 224 * 224 + i] = (pixels[i * 4 + 2] / 255 - mean[2]) / std[2];
+        }
+        return new ort.Tensor("float32", values, [1, 3, 224, 224]);
+      }
+
+      async function analyze() {
+        if (!selectedFile) return;
+        analyzeButton.disabled = true;
+        document.getElementById("emptyResult").style.display = "none";
+        document.getElementById("result").style.display = "none";
+        try {
+          setStatus("Loading the food model (about 45 MB)… the first load can take a little while.");
+          const session = await getSession();
+          setStatus("Analyzing the image in your browser…");
+          const feeds = { [session.inputNames[0]]: await makeTensor(selectedFile) };
+          const output = await session.run(feeds);
+          const logits = output[session.outputNames[0]].data;
+          const maxLogit = Math.max(...logits);
+          const exp = Array.from(logits, value => Math.exp(value - maxLogit));
+          const total = exp.reduce((sum, value) => sum + value, 0);
+          let best = 0;
+          for (let i = 1; i < exp.length; i++) if (exp[i] > exp[best]) best = i;
+          const confidence = exp[best] / total;
+          const name = classes[best];
+          document.getElementById("foodName").textContent = titleFor(name);
+          document.getElementById("calories").textContent = `${caloriesByClass[name] ?? "—"} kcal`;
+          document.getElementById("topLabel").textContent = `${Math.round(confidence * 100)}%`;
+          document.getElementById("confidenceText").textContent = `${(confidence * 100).toFixed(1)}%`;
+          document.getElementById("confidenceBar").style.width = `${Math.max(2, confidence * 100)}%`;
+          document.getElementById("result").style.display = "block";
+          setStatus("Done. This is an estimate; check the result before relying on it.");
+        } catch (error) {
+          console.error(error);
+          document.getElementById("emptyResult").style.display = "block";
+          const message = String(error && error.message || error);
+          if (message.includes("404") || message.includes("Failed to fetch")) {
+            setStatus("Could not load food-model.onnx. Add it beside index.html in your GitHub repository root, then wait for Pages to redeploy.", true);
+          } else {
+            setStatus(`Could not analyze this image: ${message}`, true);
+          }
+        } finally {
+          analyzeButton.disabled = !selectedFile;
+        }
+      }
+
+      input.addEventListener("change", event => chooseFile(event.target.files[0]));
+      dropzone.addEventListener("click", () => input.click());
+      dropzone.addEventListener("keydown", event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); input.click(); } });
+      dropzone.addEventListener("dragover", event => { event.preventDefault(); dropzone.classList.add("dragover"); });
+      dropzone.addEventListener("dragleave", () => dropzone.classList.remove("dragover"));
+      dropzone.addEventListener("drop", event => { event.preventDefault(); dropzone.classList.remove("dragover"); chooseFile(event.dataTransfer.files[0]); });
+      analyzeButton.addEventListener("click", analyze);
+      document.getElementById("clearButton").addEventListener("click", () => {
+        selectedFile = null; input.value = ""; preview.removeAttribute("src"); preview.style.display = "none"; emptyUpload.style.display = "block";
+        dropzone.classList.remove("has-image"); analyzeButton.disabled = true;
+        document.getElementById("result").style.display = "none"; document.getElementById("emptyResult").style.display = "block";
+        document.getElementById("confidenceBar").style.width = "0";
+        if (objectUrl) { URL.revokeObjectURL(objectUrl); objectUrl = null; }
+        setStatus("Ready. Select an image to begin.");
+      });
+    })();
+  </script>
+</body>
+</html>
